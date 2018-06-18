@@ -1,4 +1,5 @@
 #pragma once
+#define VERSION 2
 #define CURSOR_WIDTH 1
 #define CURSOR_HEIGHT 1
 #define WIDTH 1600
@@ -32,10 +33,10 @@
 #define CAT_POSITION glm::vec3(0.0f,-1.8f,0.0f)
 #define CAT_RADIANS -90.0f
 
-#define SPHERE_HEIGHT 0.002f
-#define SPHERE_WIDTH 0.002f
-#define SPHERE_LENGTH 0.002f
-#define SHIELD_POSITION glm::vec3(0.0f,-1.8f,0.0f)
+#define SPHERE_HEIGHT 0.0017157f
+#define SPHERE_WIDTH 0.0017157f
+#define SPHERE_LENGTH 0.001
+#define SHIELD_POSITION glm::vec3(0.0f,-1.3f,0.0f)
 #define SHIELD_RADIANS 0.0f
 
 #define OBJECT_OFFSET glm::vec3(0.0f,-2.3f,0.0f)
@@ -70,7 +71,7 @@
 #define FLYING_RESISTENCE 75.0f
 
 #define SPHERE_RADIUS 0.5f
-#define PLAYER_OFFSET glm::vec3(0.0f,-1.3f,0.0f)
+#define PLAYER_OFFSET glm::vec3(0.0f,-1.8f,0.0f)
 
 #define NANOSUIT_HEIGHT 0.06f
 #define NANOSUIT_WIDTH 0.3f

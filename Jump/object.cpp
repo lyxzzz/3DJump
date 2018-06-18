@@ -87,7 +87,7 @@ void Object::draw(vector<Rotate>&& r)
 void Object::draw(glm::vec3 trans,vector<Rotate>&& r)
 {
 	shader->Use();
-	glm::mat4 tmpmodel = rotate;
+	glm::mat4 tmpmodel;
 	for (size_t i = 0; i<r.size(); ++i)
 	{
 		tmpmodel = glm::rotate(tmpmodel, glm::radians(r[i].radians), r[i].axis);
@@ -95,14 +95,14 @@ void Object::draw(glm::vec3 trans,vector<Rotate>&& r)
 	if (eject_timer <= system_time)
 	{
 		tmpmodel = glm::scale(tmpmodel, size);
-		shader->changeMat4("model", glm::translate(translate, trans)*tmpmodel);
+		shader->changeMat4("model", glm::translate(translate, trans)*tmpmodel*rotate);
 	}
 	else
 	{
 		GLfloat offset = this->ejection();
 		trans.y += offset / 2;
 		tmpmodel = glm::scale(tmpmodel, glm::vec3(size.x, size.y + offset, size.z));
-		shader->changeMat4("model", glm::translate(translate, trans)*tmpmodel);
+		shader->changeMat4("model", glm::translate(translate, trans)*tmpmodel*rotate);
 	}
 	shader->changeMat4("view", *view);
 	shader->changeMat4("projection", projection);
@@ -179,6 +179,7 @@ glm::vec3 raw_parabola(GLfloat time, GLfloat horizon_radians, GLfloat vertical_r
 	return glm::vec3(x*cos(horizon_radians), y, x*sin(horizon_radians));
 }
 vector<rawmovingtrail> ObjectList::rawfunc_list({ raw_straight,raw_circle,raw_null,raw_parabola });
+//vector<rawmovingtrail> ObjectList::rawfunc_list({raw_null});
 ObjectList::MovingResult ObjectList::judgePosition(GLfloat time,glm::vec3 position, GLfloat radius)
 {
 	for (size_t index = 0; index < this->size; ++index)

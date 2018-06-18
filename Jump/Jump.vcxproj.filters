@@ -66,6 +66,9 @@
     <ClCompile Include="com.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="game2.0.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\shader1.vertex">

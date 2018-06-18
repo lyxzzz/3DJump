@@ -14,8 +14,8 @@
 #include FT_FREETYPE_H
 #include"mode.h"
 #include"embedded.h"
-#if VERSION==1
-#pragma comment(linker,"/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
+#if VERSION==2
+//#pragma comment(linker,"/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
 unsigned int loadTexture(char const * path);
 
 struct Character {
@@ -46,7 +46,7 @@ vector<glm::vec3> modelsize(7);
 ObjectList platform_list;
 GLfloat borning_time = 0.0f;
 GLfloat generating_time;
-GLuint score=0;
+GLuint score = 0;
 GLuint fps_times = 0;
 GLdouble fps_time = 0.0f;
 string fps_str;
@@ -107,7 +107,7 @@ DWORD WINAPI ThreadProc(LPVOID lpParameter)
 		try {
 #if DEVICE_TEST
 			string str;
-			getline(f,str);
+			getline(f, str);
 #else
 			string str = myport.readline();
 #endif
@@ -128,7 +128,7 @@ DWORD WINAPI ThreadProc(LPVOID lpParameter)
 			ss << str.substr(split + 1, str.size() - 1);
 			ss >> angle;
 #else
-				sscanf_s(str.c_str(), "%f;%f\n", &acc, &angle);
+			sscanf_s(str.c_str(), "%f;%f\n", &acc, &angle);
 #endif
 			cout << str << endl;
 			cout << "acc:" << acc << "\tangle:" << angle << endl;
@@ -162,8 +162,8 @@ DWORD WINAPI ThreadProc(LPVOID lpParameter)
 int main() {
 	/*if (!open("COM3"))
 	{
-		cout << "Fail to open COM3" << endl;
-		exit(0);
+	cout << "Fail to open COM3" << endl;
+	exit(0);
 	}
 	message m;
 	GLuint message_size;*/
@@ -209,7 +209,7 @@ int main() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//！创建着色器
-	Shader cubeshader("shader/formal/normal.vertex", "shader/formal/normal.frag","shader/formal/normal.gs");
+	Shader cubeshader("shader/formal/normal.vertex", "shader/formal/normal.frag", "shader/formal/normal.gs");
 	Shader double_cubeshader("shader/formal/normal.vertex", "shader/formal/d_normal.frag", "shader/formal/normal.gs");
 	Shader modelshader("shader/formal/model_loading.vertex", "shader/formal/model_loading.frag", "shader/formal/model_loading.gs");
 	Shader sphereshader("shader/formal/sphere.vertex", "shader/formal/sphere.frag", "shader/formal/sphere.gs");
@@ -218,7 +218,7 @@ int main() {
 	Shader textShader("shader/formal/text.vertex", "shader/formal/text.frag");
 	glm::mat4 textprojection = glm::ortho(0.0f, 1280.0f, 0.0f, 720.0f);
 	textShader.Use();
-	textShader.changeMat4("projection",textprojection);
+	textShader.changeMat4("projection", textprojection);
 	loadFont();
 
 
@@ -274,7 +274,7 @@ int main() {
 	Object cube6(&cubemodel7, &cubeshader, OBJECT_OFFSET, 0.0f, view, projection, Object::Normal, glm::vec3(2.0f, 1.0f, 2.0f));
 	//Object cube(&circlemodel, &circleshader, glm::vec3(0.0f,0.0f,0.0f), 0.0f, view, projection, Object::Circle);
 	moving_trail cube_trail = [](GLfloat time) {return glm::vec3(0.0f, 0.0f, 0.0f); };
-	Object player(&muppetmodel, &modelshader,MUPPET_POSITION, MUPPET_RADIANS, view, projection,Object::Muppet);
+	Object player(&muppetmodel, &modelshader, MUPPET_POSITION, MUPPET_RADIANS, view, projection, Object::Muppet);
 	Object shield(&spheremodel, &sphereshader, SHIELD_POSITION, SHIELD_RADIANS, view, projection, Object::Sphere);
 	Skybox skybox("photo/sor_cwd/", ".jpg");
 	float currentFrame;
@@ -318,212 +318,212 @@ int main() {
 		}
 		switch (callback.playerstate)
 		{
-			case ModelState::Borning:
+		case ModelState::Borning:
+		{
+			shield.translucent(0.0f);
+			GLfloat time = system_time - borning_time;
+			if (time >= BORNING_TIME)
 			{
-				shield.translucent(0.0f);
-				GLfloat time = system_time - borning_time;
-				if (time >= BORNING_TIME)
-				{
-					time = BORNING_TIME;
-					callback.playerstate = ModelState::Stillness;
-				}
-				cube.draw();
-				player.draw(time);
-				platform_list.draw();
-				shield.draw();
-				break;
+				time = BORNING_TIME;
+				callback.playerstate = ModelState::Stillness;
 			}
-			case ModelState::Reborn:
+			cube.draw();
+			player.draw(time);
+			platform_list.draw();
+			shield.draw();
+			break;
+		}
+		case ModelState::Reborn:
+		{
+			callback.playerstate = ModelState::Generating;
+			platform_list.generatePlatform(platform_nums);
+			camera.move(VIEW_INIT);
+			generating_time = system_time;
+			shield.translucent(0.0f);
+			break;
+		}
+		case ModelState::Generating:
+		{
+			GLfloat time = system_time - generating_time;
+			if (time >= BORNING_TIME)
 			{
-				callback.playerstate = ModelState::Generating;
-				platform_list.generatePlatform(platform_nums);
-				camera.move(VIEW_INIT);
-				generating_time = system_time;
-				shield.translucent(0.0f);
-				break;
+				time = BORNING_TIME;
+				callback.playerstate = ModelState::Stillness;
 			}
-			case ModelState::Generating:
+			glm::vec3 moving = cube_trail(system_time);
+			//cout << time << endl;
+			cube.draw(moving);
+			//camera.move(moving);
+			if (!callback.cursor_drag)
 			{
-				GLfloat time = system_time - generating_time;
-				if (time >= BORNING_TIME)
-				{
-					time = BORNING_TIME;
-					callback.playerstate = ModelState::Stillness;
-				}
-				glm::vec3 moving = cube_trail(system_time);
-				//cout << time << endl;
-				cube.draw(moving);
-				//camera.move(moving);
-				if (!callback.cursor_drag)
-				{
-					player_angle = camera.rotateRadians.x;
-				}
-				player.draw(moving,{ { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
-				platform_list.draw(time);
-				shield.draw(moving);
-				break;
+				player_angle = camera.rotateRadians.x;
 			}
-			case ModelState::Stillness:
-			{		
-				glm::vec3 moving = cube_trail(system_time);
-				cube.draw(moving);
+			player.draw(moving, { { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
+			platform_list.draw(time);
+			shield.draw(moving);
+			break;
+		}
+		case ModelState::Stillness:
+		{
+			glm::vec3 moving = cube_trail(system_time);
+			cube.draw(moving);
 #if CAMERA_FOLLOWUP
-				camera.move(moving);
+			camera.move(moving);
 #endif
-				if (!callback.cursor_drag)
-				{
-					player_angle = camera.rotateRadians.x;
-				}
-				player.draw(moving,{ { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
-				platform_list.draw();
-				shield.draw(moving);
-				break; 
+			if (!callback.cursor_drag)
+			{
+				player_angle = camera.rotateRadians.x;
 			}
+			player.draw(moving, { { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
+			platform_list.draw();
+			shield.draw(moving);
+			break;
+		}
 
-			case ModelState::Accumlating:
+		case ModelState::Accumlating:
+		{
+			GLfloat time = system_time - callback.lastTime;
+			if (time > MAX_INTENSITY)
 			{
-				GLfloat time = system_time - callback.lastTime;
-				if (time > MAX_INTENSITY)
-				{
-					time = MAX_INTENSITY;
-				}
-				glm::vec3 moving = cube_trail(system_time);
-				GLfloat tmp = -cube.compress(time,moving);
-				glm::vec3 move(0.0f, tmp, 0.0f);
+				time = MAX_INTENSITY;
+			}
+			glm::vec3 moving = cube_trail(system_time);
+			GLfloat tmp = -cube.compress(time, moving);
+			glm::vec3 move(0.0f, tmp, 0.0f);
 #if CAMERA_FOLLOWUP
-				camera.move(moving);
+			camera.move(moving);
 #endif
-				//camera.move(moving);
-				if (!callback.cursor_drag)
-				{
-					player_angle = camera.rotateRadians.x;
-				}
-				player.draw(move+moving);
-				shield_value = time / MAX_INTENSITY;
-				shield.translucent(shield_value);
-				callback.view_speed = glm::vec3(-HORIZON_SPEED * sin(glm::radians(player_angle)), SPEED_POWER*time*time, -HORIZON_SPEED * cos(glm::radians(player_angle)));
-				platform_list.draw();
-				shield.draw(move + moving, { {360.0f*system_time,glm::vec3(1.0f,0.0f,0.0f)} });
-				//cout << callback.view_speed.x << ":" << callback.view_speed.y << ":" << callback.view_speed.z << endl;
-				break;
-			}
-			case ModelState::Lauching:
+			//camera.move(moving);
+			if (!callback.cursor_drag)
 			{
-				GLfloat time = system_time - callback.lastTime;
-				platform_list.draw();
-				glm::vec3 moving = cube_trail(system_time);
-				offset = moving;
+				player_angle = camera.rotateRadians.x;
+			}
+			//player.draw(move + moving);
+			shield_value = time / MAX_INTENSITY * 0.6 + 0.4;
+			shield.translucent(shield_value);
+			callback.view_speed = glm::vec3(-HORIZON_SPEED * sin(glm::radians(player_angle)), SPEED_POWER*time*time, -HORIZON_SPEED * cos(glm::radians(player_angle)));
+			platform_list.draw();
+			shield.draw(move+moving, { {-system_time*3600.0f,glm::vec3(1.0f,0.0f,0.0f)} });
+			//cout << callback.view_speed.x << ":" << callback.view_speed.y << ":" << callback.view_speed.z << endl;
+			break;
+		}
+		case ModelState::Lauching:
+		{
+			GLfloat time = system_time - callback.lastTime;
+			platform_list.draw();
+			glm::vec3 moving = cube_trail(system_time);
+			offset = moving;
 #if CAMERA_FOLLOWUP
-				camera.move(moving);
+			camera.move(moving);
 #endif
-				if (time > MAX_INTENSITY)
-				{
-					time = MAX_INTENSITY;
-				}
-				if (system_time >= callback.flyTime)
-				{
-					callback.playerstate = ModelState::Flying;
-					flying_time = system_time;
-				}
-				cube.ejection(EJECTION_TIME, time);
-				cube.draw(moving);
-				if (!callback.cursor_drag)
-				{
-					player_angle = camera.rotateRadians.x;
-				}
-				GLfloat offsettime = system_time - callback.flyTime + EJECTION_TIME;
-				glm::vec3 move(0.0f, cube.eject_func(offsettime), 0.0f);
-				player.draw(move+moving,{ { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
-				shield.draw(move+moving);
-				break;
-			}
-			case ModelState::Pause:
+			if (time > MAX_INTENSITY)
 			{
-				platform_list.draw();
-				cube.draw();
-				player.draw();
-				shield.draw();
-				RenderText(textShader, "You failed!", 320.0f, 400.0f, 3.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-				RenderText(textShader, "Press enter to reborn.", 125.0f, 200.0f, 2.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-				break;
+				time = MAX_INTENSITY;
 			}
-			case ModelState::Flying:
+			if (system_time >= callback.flyTime)
 			{
-				platform_list.draw();
-				glm::vec3 moving = cube_trail(system_time);
-				cube.draw(moving);
-				GLfloat t = system_time - flying_time;
-				GLfloat left_shield = shield_value - SHIELD_CONSUME * t;
-				if (!callback.cursor_drag)
+				callback.playerstate = ModelState::Flying;
+				flying_time = system_time;
+			}
+			cube.ejection(EJECTION_TIME, time);
+			cube.draw(moving);
+			if (!callback.cursor_drag)
+			{
+				player_angle = camera.rotateRadians.x;
+			}
+			GLfloat offsettime = system_time - callback.flyTime + EJECTION_TIME;
+			glm::vec3 move(0.0f, cube.eject_func(offsettime), 0.0f);
+			player.draw(move + moving, { { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
+			shield.draw(move + moving);
+			break;
+		}
+		case ModelState::Pause:
+		{
+			platform_list.draw();
+			cube.draw();
+			player.draw();
+			shield.draw();
+			RenderText(textShader, "You failed!", 320.0f, 400.0f, 3.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+			RenderText(textShader, "Press enter to reborn.", 125.0f, 200.0f, 2.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+			break;
+		}
+		case ModelState::Flying:
+		{
+			platform_list.draw();
+			glm::vec3 moving = cube_trail(system_time);
+			cube.draw(moving);
+			GLfloat t = system_time - flying_time;
+			GLfloat left_shield = shield_value - SHIELD_CONSUME * t;
+			if (!callback.cursor_drag)
+			{
+				player_angle = camera.rotateRadians.x;
+			}
+			if (left_shield >= 0)
+			{
+				glm::vec3 move = t * callback.view_speed;
+				move.y = callback.view_speed.y*t - 0.5f*VERTICAL_ACCELERATION*t*t;
+				move += offset;
+				//cout << move.x << ":" << move.y << ":" << move.z << endl;
+				if (callback.followup)
 				{
-					player_angle = camera.rotateRadians.x;
-				}
-				if (left_shield >= 0)
-				{
-					glm::vec3 move = t * callback.view_speed;
-					move.y = callback.view_speed.y*t - 0.5f*VERTICAL_ACCELERATION*t*t;
-					move += offset;
-					//cout << move.x << ":" << move.y << ":" << move.z << endl;
-					if (callback.followup)
-					{
-						camera.move(move);
-					}
-					else
-					{
-						camera.move(VIEW_INIT);
-					}
-					player.draw(move, { { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
-					shield.translucent(left_shield);
-					GLfloat rad = glm::radians(t*FLYING_ANGULAR);
-					move.z -= sin(rad)/2;
-					move.y += ((1 - cos(rad))*0.58f);
-					shield.draw(move, { { t*FLYING_ANGULAR,glm::vec3(1.0f,0.0f,0.0f)} });
-					switch (platform_list.judgePosition(system_time, move + PLAYER_OFFSET, SPHERE_RADIUS))
-					{
-						case ObjectList::MovingResult::collision:
-						{
-							callback.playerstate = ModelState::Pause;
-							//borning_time = system_time;
-							//camera.move(VIEW_INIT);
-							break;
-						}
-						case ObjectList::MovingResult::fly:
-						{
-							break;
-						}
-						case ObjectList::MovingResult::land:
-						{
-							cube = platform_list.land_object;
-#if CUBE_MOVING
-							cube_trail = platform_list.land_func;
-#endif
-							callback.playerstate = ModelState::Generating;
-							platform_list.generatePlatform(platform_nums);
-							camera.move(VIEW_INIT);
-							generating_time = system_time;
-							shield.translucent(0.0f);
-							++score;
-							break;
-						}
-					}
-					if (callback.followup) callback.view_speed = glm::vec3(-HORIZON_SPEED * sin(glm::radians(player_angle)), callback.view_speed.y, -HORIZON_SPEED * cos(glm::radians(player_angle)));
-					//shield.draw(move);
+					camera.move(move);
 				}
 				else
+				{
+					camera.move(VIEW_INIT);
+				}
+				player.draw(move, { { player_angle,glm::vec3(0.0f,1.0f,0.0f) } });
+				shield.translucent(left_shield);
+				GLfloat rad = glm::radians(t*FLYING_ANGULAR);
+				move.z -= sin(rad) / 2;
+				move.y += ((1 - cos(rad))*0.58f);
+				shield.draw(move, { { t*FLYING_ANGULAR,glm::vec3(1.0f,0.0f,0.0f) } });
+				switch (platform_list.judgePosition(system_time, move + PLAYER_OFFSET, SPHERE_RADIUS))
+				{
+				case ObjectList::MovingResult::collision:
 				{
 					callback.playerstate = ModelState::Pause;
 					//borning_time = system_time;
 					//camera.move(VIEW_INIT);
+					break;
 				}
-				break;
+				case ObjectList::MovingResult::fly:
+				{
+					break;
+				}
+				case ObjectList::MovingResult::land:
+				{
+					cube = platform_list.land_object;
+#if CUBE_MOVING
+					cube_trail = platform_list.land_func;
+#endif
+					callback.playerstate = ModelState::Generating;
+					platform_list.generatePlatform(platform_nums);
+					camera.move(VIEW_INIT);
+					generating_time = system_time;
+					shield.translucent(0.0f);
+					++score;
+					break;
+				}
+				}
+				if (callback.followup) callback.view_speed = glm::vec3(-HORIZON_SPEED * sin(glm::radians(player_angle)), callback.view_speed.y, -HORIZON_SPEED * cos(glm::radians(player_angle)));
+				//shield.draw(move);
 			}
+			else
+			{
+				callback.playerstate = ModelState::Pause;
+				//borning_time = system_time;
+				//camera.move(VIEW_INIT);
+			}
+			break;
+		}
 		}
 
 		stringstream ss;
 		ss << "your score:";
 		ss << score;
 		//RenderText(textShader, "This is sample text", 25.0f, HEIGHT-100.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
-		RenderText(textShader, ss.str(), 500.0f,650.0f, 1.0f, glm::vec3(0.3, 0.7f, 0.9f));
+		RenderText(textShader, ss.str(), 500.0f, 650.0f, 1.0f, glm::vec3(0.3, 0.7f, 0.9f));
 		if (system_time - fps_time >= 1.0f)
 		{
 			fps_time = system_time;
@@ -680,4 +680,4 @@ void loadFont()
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 }
-#endif // VERSION==1
+#endif

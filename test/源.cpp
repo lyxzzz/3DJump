@@ -4,6 +4,8 @@
 #include<Windows.h>
 #include<fstream>
 #include<time.h>
+#include<sstream>
+#include<string>
 using namespace std;
 HANDLE hCom;
 #define OFFSET 0.001
@@ -52,12 +54,46 @@ float getRand()
 }
 int main()
 {
-	ofstream out("C:\\Files\\Code\\C++\\Jump\\Jump\\test\\testfile",ios::out);
-	srand(time(NULL));
-	for (size_t i = 0; i < 5000; ++i)
+	ifstream in("C:/Files/Code/C++/Jump/Jump/model/sphere/file.obj");
+	string str;
+	//int count = 0;
+	stringstream ss;
+	float arr[3];
+	float amax[3];
+	float amin[3];
+	bool flag = false;
+	while (!in.eof())
 	{
-		out << 15 << ";" << (getfloat()*75.0f) << endl;
+//		count++;
+		stringstream().swap(ss);
+		getline(in, str);
+		ss << str;
+		ss >> str;
+		if (str == "v")
+		{
+			ss >> arr[0] >> arr[1] >> arr[2];
+			if (flag)
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					amax[i] = max(amax[i], arr[i]);
+					amin[i] = min(amin[i], arr[i]);
+				}
+			}
+			else
+			{
+				flag = true;
+				for (int i = 0; i < 3; i++)
+				{
+					amax[i] = arr[i];
+					amin[i] = arr[i];
+				}
+			}
+		}
 	}
+
+	//cout << count << endl;
+	cout << "end" << endl;
 	getchar();
 
 }

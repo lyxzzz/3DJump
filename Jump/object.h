@@ -56,6 +56,10 @@ public:
 			this->rotate = glm::translate(this->rotate, glm::vec3(0.0f, -0.5f, 0.0f));
 			//this->rotate = glm::rotate(this->rotate, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 		}
+		else if (modeltype == ModelType::Sphere)
+		{
+			this->rotate = glm::translate(this->rotate, glm::vec3(0.0f, -0.5f, 0.0f));
+		}
 		this->rotate = glm::scale(this->rotate, modelsize[modeltype]);
 	}
 	Object(const Object& o)
